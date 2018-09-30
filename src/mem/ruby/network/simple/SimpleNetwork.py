@@ -39,10 +39,14 @@ class SimpleNetwork(RubyNetwork):
     buffer_size = Param.Int(0,
         "default buffer size; 0 indicates infinite buffering");
     endpoint_bandwidth = Param.Int(1000, "bandwidth adjustment factor");
+    #print "Bandwidth: ", endpoint_bandwidth
     adaptive_routing = Param.Bool(False, "enable adaptive routing");
     int_link_buffers = VectorParam.MessageBuffer("Buffers for int_links")
 
-    def setup_buffers(self):
+    def setup_buffers(self, bandwidth):
+        self.endpoint_bandwidth = bandwidth
+        print "Bandwidth: ", self.endpoint_bandwidth
+        #print "7.8.2.1"
         # Note that all SimpleNetwork MessageBuffers are currently ordered
         network_buffers = []
         for link in self.int_links:

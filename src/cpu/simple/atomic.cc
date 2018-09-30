@@ -239,6 +239,7 @@ AtomicSimpleCPU::activateContext(ThreadID thread_num)
     }
 
     BaseCPU::activateContext(thread_num);
+    DPRINTF(SimpleCPU, "ActivateContext end\n");
 }
 
 

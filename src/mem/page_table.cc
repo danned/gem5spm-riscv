@@ -185,7 +185,9 @@ PageTableBase::translate(Addr vaddr, Addr &paddr)
 Fault
 PageTableBase::translate(RequestPtr req)
 {
+
     Addr paddr;
+    DPRINTF(MMU, "translate: RequestPtr \n");
     assert(pageAlign(req->getVaddr() + req->getSize() - 1)
            == pageAlign(req->getVaddr()));
     if (!translate(req->getVaddr(), paddr)) {

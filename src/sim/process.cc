@@ -43,7 +43,6 @@
  *          Ali Saidi
  *          Brandon Potter
  */
-
 #include "sim/process.hh"
 
 #include <fcntl.h>
@@ -61,6 +60,7 @@
 #include "base/statistics.hh"
 #include "config/the_isa.hh"
 #include "cpu/thread_context.hh"
+#include "debug/Process.hh"
 #include "mem/page_table.hh"
 #include "mem/se_translating_port_proxy.hh"
 #include "params/Process.hh"
@@ -169,7 +169,9 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
 #ifndef CLONE_THREAD
 #define CLONE_THREAD 0
 #endif
+        DPRINTF(Process, "clone: start\n");
     if (CLONE_VM & flags) {
+                //DPRINTF(Process, "clone: CLONE_VM * flags\n");
         /**
          * Share the process memory address space between the new process
          * and the old process. Changes in one will be visible in the other
@@ -181,6 +183,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
 
         np->memState = memState;
     } else {
+                //DPRINTF(Process, "clone: !(CLONE_VM * flags)\n");
         /**
          * Duplicate the process memory address space. The state needs to be
          * copied over (rather than using pointers to share everything).
@@ -191,6 +194,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
 
         for (auto map : mappings) {
             Addr paddr, vaddr = map.first;
+            DPRINTF(Process, "clone: !(CLONE_VM & flags) { translate()}\n");
             bool alloc_page = !(np->pTable->translate(vaddr, paddr));
             np->replicatePage(vaddr, paddr, otc, ntc, alloc_page);
         }
@@ -199,6 +203,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
     }
 
     if (CLONE_FILES & flags) {
+                //DPRINTF(Process, "clone: CLONE_FILES * flags\n");
         /**
          * The parent and child file descriptors are shared because the
          * two FDArray pointers are pointing to the same FDArray. Opening
@@ -206,6 +211,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
          */
         np->fds = fds;
     } else {
+                //DPRINTF(Process, "clone: !(CLONE_FILES * flags)\n");
         /**
          * Copy the file descriptors from the old process into the new
          * child process. The file descriptors entry can be opened and
@@ -214,6 +220,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
          * host file descriptor is independent of the other process.
          */
         for (int tgt_fd = 0; tgt_fd < fds->getSize(); tgt_fd++) {
+                        DPRINTF(Process, "clone: 1\n");
             std::shared_ptr<FDArray> nfds = np->fds;
             std::shared_ptr<FDEntry> this_fde = (*fds)[tgt_fd];
             if (!this_fde) {
@@ -239,6 +246,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
     }
 
     if (CLONE_THREAD & flags) {
+                //DPRINTF(Process, "clone: CLONE_THREAD * flags\n");
         np->_tgid = _tgid;
         delete np->exitGroup;
         np->exitGroup = exitGroup;
@@ -246,6 +254,7 @@ Process::clone(ThreadContext *otc, ThreadContext *ntc,
 
     np->argv.insert(np->argv.end(), argv.begin(), argv.end());
     np->envp.insert(np->envp.end(), envp.begin(), envp.end());
+        //DPRINTF(Process, "clone: end\n");
 }
 
 void
@@ -287,16 +296,23 @@ Process::revokeThreadContext(int context_id)
 void
 Process::initState()
 {
+        //DPRINTF(Process, "initState: start\n");
     if (contextIds.empty())
         fatal("Process %s is not associated with any HW contexts!\n", name());
 
+        //DPRINTF(Process, "initState: 1\n");
     // first thread context for this process... initialize & enable
     ThreadContext *tc = system->getThreadContext(contextIds[0]);
 
     // mark this context as active so it will start ticking.
+
+        DPRINTF(Process, "initState: call activate\n");
     tc->activate();
 
+        //DPRINTF(Process, "initState: 2\n");
     pTable->initState(tc);
+
+        //DPRINTF(Process, "initState: end\n");
 }
 
 DrainState

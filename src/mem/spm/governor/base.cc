@@ -1,11 +1,14 @@
 #include "mem/spm/governor/base.hh"
+
+#include <iostream>
+
 #include "mem/spm/governor/explicit_local_spm.hh"
+#include "mem/spm/governor/explicit_spm.hh"
 #include "mem/spm/governor/greedy_spm.hh"
 #include "mem/spm/governor/guaranteed_greedy_spm.hh"
 #include "mem/spm/governor/local_spm.hh"
 #include "mem/spm/governor/random_spm.hh"
 
-#include <iostream>
 using namespace std;
 
 BaseGovernor *
@@ -21,6 +24,8 @@ BaseGovernorParams::create()
         return new GreedySPM(this);
     else if (gov_type.compare("GuaranteedGreedy") == 0)
         return new GuaranteedGreedySPM(this);
+    else if (gov_type.compare("Explicit") == 0)
+        return new ExplicitSPM(this);
     else
         panic ("undefined governor type");
 }

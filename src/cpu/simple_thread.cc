@@ -48,6 +48,7 @@
 #include "cpu/profile.hh"
 #include "cpu/quiesce_event.hh"
 #include "cpu/thread_context.hh"
+#include "debug/Simplethread.hh"
 #include "mem/fs_translating_port_proxy.hh"
 #include "mem/se_translating_port_proxy.hh"
 #include "params/BaseCPU.hh"
@@ -164,12 +165,15 @@ SimpleThread::dumpFuncProfile()
 void
 SimpleThread::activate()
 {
+        DPRINTF(Simplethread, "activate start\n");
     if (status() == ThreadContext::Active)
         return;
 
     lastActivate = curTick();
     _status = ThreadContext::Active;
+
     baseCpu->activateContext(_threadId);
+        DPRINTF(Simplethread, "activate end\n");
 }
 
 void

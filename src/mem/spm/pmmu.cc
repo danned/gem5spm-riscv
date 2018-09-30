@@ -1,27 +1,30 @@
+#include "mem/spm/pmmu.hh"
+
+#include <sys/types.h>
+#include <unistd.h>
+
 #include <cassert>
 #include <sstream>
 #include <string>
-#include <sys/types.h>
 #include <typeinfo>
-#include <unistd.h>
 
 #include "base/compiler.hh"
 #include "base/cprintf.hh"
-#include "debug/PMMU.hh"
 #include "debug/ATT.hh"
+#include "debug/PMMU.hh"
 #include "mem/page_table.hh"
 #include "mem/protocol/Types.hh"
 #include "mem/ruby/network/Network.hh"
-#include "mem/ruby/system/RubySystem.hh"
 #include "mem/ruby/slicc_interface/RubySlicc_includes.hh"
-#include "mem/spm/pmmu.hh"
+#include "mem/ruby/system/RubySystem.hh"
 #include "mem/spm/att.hh"
-#include "mem/spm/spm_message/SPMRequestMsg.hh"
-#include "mem/spm/spm_message/SPMResponseMsg.hh"
-#include "mem/spm/governor/local_spm.hh"
-#include "mem/spm/governor/random_spm.hh"
+#include "mem/spm/governor/explicit_spm.hh"
 #include "mem/spm/governor/greedy_spm.hh"
 #include "mem/spm/governor/guaranteed_greedy_spm.hh"
+#include "mem/spm/governor/local_spm.hh"
+#include "mem/spm/governor/random_spm.hh"
+#include "mem/spm/spm_message/SPMRequestMsg.hh"
+#include "mem/spm/spm_message/SPMResponseMsg.hh"
 
 int PMMU::m_num_controllers = 0;
 int PMMU::m_page_size_bytes;
@@ -41,7 +44,6 @@ PMMU::PMMU(const Params *p)
     m_machineID.type = MachineType_PMMU;
     m_machineID.num = m_version;
     m_num_controllers++;
-
     spmSlavePort = new SPMSideSlavePort(p->name + ".spm_s_side", this, 0);
     spmMasterPort = new SPMSideMasterPort(p->name + ".spm_m_side", this, 1);
 
@@ -49,8 +51,6 @@ PMMU::PMMU(const Params *p)
     assert(isPowerOf2(m_page_size_bytes));
 
     m_in_ports = 2; //@TODO: Should this be 2?
-//    m_dma_sequencer_ptr->setController(this);
-//    m_request_latency = p->request_latency;
     m_responseFromSPM_ptr = p->responseFromSPM;
     m_responseToSPM_ptr = p->responseToSPM;
     m_requestFromSPM_ptr = p->requestFromSPM;
@@ -96,6 +96,13 @@ PMMU::addToGovernor(std::string gov_type)
     }
     else if (gov_type.compare("GuaranteedGreedy") == 0) {
         dynamic_cast<GuaranteedGreedySPM*>(my_governor_ptr)->addPMMU(this);
+    }
+    //else if (gov_type.compare("Local") == 0) {
+    //    dynamic_cast<LocalSPM*>(my_governor_ptr)->addPMMU(this);
+    //}
+    // Added for explicit
+    else if (gov_type.compare("Explicit") == 0) {
+        dynamic_cast<ExplicitSPM*>(my_governor_ptr)->addPMMU(this);
     }
 }
 

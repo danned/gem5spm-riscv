@@ -86,6 +86,7 @@ def config_cache(options, system):
 
     pmmu_nodes = []
     for i in xrange(options.num_cpus):
+        #print("PMMU")
         if options.caches:
             responseFromSPM = MessageBuffer(ordered = True);
             responseToSPM = MessageBuffer(ordered = True);

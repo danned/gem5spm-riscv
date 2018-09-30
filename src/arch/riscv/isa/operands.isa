@@ -71,6 +71,15 @@ def operands {{
     'Fp2': ('FloatReg', 'df', 'FP2 + 8', 'IsFloating', 2),
     'Fp2_bits': ('FloatReg', 'ud', 'FP2 + 8', 'IsFloating', 2),
 
+
+    'R0':  ('IntReg', 'ud', '0',  'IsInteger', 1),
+    'R16': ('IntReg', 'ud', '16', 'IsInteger', 1),
+    'R17': ('IntReg', 'ud', '17', 'IsInteger', 1),
+    'R18': ('IntReg', 'ud', '18', 'IsInteger', 1),
+    'R19': ('IntReg', 'ud', '19', 'IsInteger', 1),
+    'R20': ('IntReg', 'ud', '20', 'IsInteger', 1),
+    'R21': ('IntReg', 'ud', '21', 'IsInteger', 1),
+
 #Memory Operand
     'Mem': ('Mem', 'ud', None, ('IsMemRef', 'IsLoad', 'IsStore'), 5),
 

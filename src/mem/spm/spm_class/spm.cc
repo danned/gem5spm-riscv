@@ -60,6 +60,7 @@
 #include "mem/cache/cache.hh"
 #include "sim/sim_exit.hh"
 
+//#define DEBUG
 SPM::SPM(const SPMParams *p)
     : BaseSPM(p, p->system->cacheLineSize()),
       read_ber(p->read_ber),
@@ -67,6 +68,9 @@ SPM::SPM(const SPMParams *p)
       ber_energy_file(p->ber_energy_file),
       pendingReqs(0)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::SPM\n";
+        #endif
     cpuSidePort = new CpuSidePort(p->name + ".cpu_side", this,
                                   "CpuSidePort");
     memSidePort = new MemSidePort(p->name + ".mem_side", this,
@@ -79,6 +83,9 @@ SPM::SPM(const SPMParams *p)
 void
 SPM::init()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::init";
+        #endif
     myPMMU = dynamic_cast<PMMU*>(pmmuSlavePort->getMasterPort().getOwner());
     assert(myPMMU);
 
@@ -94,6 +101,9 @@ SPM::init()
 
 SPM::~SPM()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::~SPM\n";
+        #endif
     delete cpuSidePort;
     delete memSidePort;
 
@@ -103,6 +113,9 @@ SPM::~SPM()
 void
 SPM::regStats()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::regStats\n";
+        #endif
     BaseSPM::regStats();
 }
 
@@ -149,6 +162,9 @@ SPM::recvAtomic(PacketPtr pkt)
 void
 SPM::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::functionalAccess\n";
+        #endif
     if (system->bypassCaches()) {
         // Packets from the memory side are snoop request and
         // shouldn't happen in bypass mode.
@@ -191,6 +207,9 @@ SPM::functionalAccess(PacketPtr pkt, bool fromCpuSide)
 void
 SPM::recvTimingSnoopReq(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::recvTimingSnoopReq\n";
+        #endif
     return;
     panic("recvTimingSnoopReq()");
 }
@@ -198,6 +217,9 @@ SPM::recvTimingSnoopReq(PacketPtr pkt)
 bool
 SPM::CpuSidePort::recvTimingSnoopResp(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::CpuSidePort::recvTimingSnoopResp\n";
+        #endif
     // Express snoop responses from master to slave, e.g., from L1 to L2
     spm->recvTimingSnoopResp(pkt);
     return true;
@@ -219,6 +241,9 @@ SPM::recvAtomicSnoop(PacketPtr pkt)
 AddrRangeList
 SPM::CpuSidePort::getAddrRanges() const
 {
+        #ifdef DEBUG
+        std::cout << "SPM::CpuSidePort::getAddrRanges\n";
+        #endif
     return spm->getAddrRanges();
 }
 
@@ -227,6 +252,9 @@ SPM::CpuSidePort::recvTimingReq(PacketPtr pkt)
 {
     assert(!spm->system->bypassCaches());
 
+        #ifdef DEBUG
+        std::cout << "SPM::CpuSidePort::recvTimingReq\n";
+        #endif
     bool success = false;
 
     // always let inhibited requests through, even if blocked,
@@ -255,12 +283,18 @@ SPM::CpuSidePort::recvTimingReq(PacketPtr pkt)
 Tick
 SPM::CpuSidePort::recvAtomic(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::CpuSidePort::recvAtomic\n";
+        #endif
     return spm->recvAtomic(pkt);
 }
 
 void
 SPM::CpuSidePort::recvFunctional(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::CpuSidePort::recvFunctional\n";
+        #endif
     // functional request
     spm->functionalAccess(pkt, true);
 }
@@ -286,6 +320,9 @@ SPMParams::create()
 bool
 SPM::MemSidePort::recvTimingResp(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::MemSidePort::recvTimingResp\n";
+        #endif
     spm->recvTimingResp(pkt);
     return true;
 }
@@ -294,6 +331,9 @@ SPM::MemSidePort::recvTimingResp(PacketPtr pkt)
 void
 SPM::MemSidePort::recvTimingSnoopReq(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::MemSidePort::recvTimingSnoopReq\n";
+        #endif
     // handle snooping requests
     spm->recvTimingSnoopReq(pkt);
 }
@@ -301,12 +341,18 @@ SPM::MemSidePort::recvTimingSnoopReq(PacketPtr pkt)
 Tick
 SPM::MemSidePort::recvAtomicSnoop(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::MemSidePort::recvAtomicSnoop\n";
+        #endif
     return spm->recvAtomicSnoop(pkt);
 }
 
 void
 SPM::MemSidePort::recvFunctionalSnoop(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::MemSidePort::recvFunctionalSnoop\n";
+        #endif
     // functional snoop (note that in contrast to atomic we don't have
     // a specific functionalSnoop method, as they have the same
     // behaviour regardless)
@@ -332,6 +378,9 @@ MemSidePort::MemSidePort(const std::string &_name, SPM *_spm,
 void
 SPM::recvTimingResp(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::recvTimingResp\n";
+        #endif
     if (pkt->govInfo.isAllocate()) {
         // unblock the cpu port
         conditionalUnblocking(Blocked_MaxPendingReqs);
@@ -364,9 +413,8 @@ SPM::recvTimingReq(PacketPtr pkt)
     //@TODO: Only forward CPU's pkts
     assert(pkt->isRequest());
 
-    //Addr v_addr = pkt->req->getVaddr();
-    //Addr p_addr = pkt->req->getPaddr();
-    //DPRINTF(SPM, "SPM sends request to PMMU for \tVA = %x \tPA = %x\n", v_addr, p_addr);
+    //DPRINTF(SPM, "SPM sends request to PMMU for "
+    //             "\tVA = %x \tPA = %x\n", v_addr, p_addr);
 
     //Forward everything to main memory
     //memSidePort->schedTimingReq(pkt, curTick()+1);
@@ -383,6 +431,9 @@ SPM::recvPMMUTimingReq(PacketPtr pkt)
 {
     assert(pkt->isRequest());
 
+        #ifdef DEBUG
+        std::cout << "SPM::recvPMMUTimingReq\n";
+        #endif
     //case 1: page allocation
     if (pkt->govInfo.isAllocate()) {
         // forward it to main memory,
@@ -450,6 +501,9 @@ SPM::recvPMMUTimingReq(PacketPtr pkt)
 void
 SPM::recvPMMUTimingResp(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::recvPMMUTimingResp\n";
+        #endif
     // response for a CPU request
     assert(pkt->isResponse());
 
@@ -504,7 +558,7 @@ SPM::recvPMMUTimingResp(PacketPtr pkt)
 
     } else if (pkt->spmInfo.isNotSPMSpace()) {
         assert (pendingReqs <= MAX_PENDING_REQS);
-
+        DPRINTF(SPM, "Not in SPM Space\n");
         pkt->retrieveCmd();
 
         memSidePort->schedTimingReq(pkt, curTick());
@@ -517,6 +571,9 @@ SPM::recvPMMUTimingResp(PacketPtr pkt)
 bool
 SPM::satisfySPMAccess(PacketPtr pkt, Cycles* lat)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::satisfySPMAccess\n";
+        #endif
     DPRINTF(SPM, "%s for %s VA = %x size %d\n", __func__,
             pkt->cmdString(), pkt->req->getVaddr(), pkt->getSize());
 
@@ -567,6 +624,9 @@ SPM::satisfySPMAccess(PacketPtr pkt, Cycles* lat)
 void
 SPM::sendTimingRespToCPU(PacketPtr pkt, Cycles lat)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::sendTimingRespToCPU\n";
+        #endif
 //    assert(pkt->isResponse());
 
     // if lat is 1 cycle, this ensures that the response
@@ -605,6 +665,9 @@ SPM::sendTimingRespToCPU(PacketPtr pkt, Cycles lat)
 void
 SPM::initializePageAllocation(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::initializePageAllocation\n";
+        #endif
     //conditionalBlocking(Blocked_MaxPendingReqs);
     assert (pendingReqs <= MAX_PENDING_REQS);
 
@@ -614,7 +677,8 @@ SPM::initializePageAllocation(PacketPtr pkt)
 void
 SPM::satisfyPageAllocation(PacketPtr pkt)
 {
-    unsigned int spm_page_index = pAddress2PageIndex(pkt->govInfo.getSPMAddress());
+    unsigned int spm_page_index = pAddress2PageIndex(
+                                    pkt->govInfo.getSPMAddress());
 
     DPRINTF(SPM, "satisfyPageAllocation on SPM Page = %d\n", spm_page_index);
 
@@ -638,6 +702,9 @@ SPM::satisfyPageAllocation(PacketPtr pkt)
 void
 SPM::initializePageDeallocation (PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::initializePageDeallocation\n";
+        #endif
     // conditionalBlocking(Blocked_MaxPendingReqs);
     assert (pendingReqs <= MAX_PENDING_REQS);
 
@@ -662,6 +729,9 @@ SPM::initializePageDeallocation (PacketPtr pkt)
 void
 SPM::satisfyPageDeallocation (PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::satisfyPageDeallocation\n";
+        #endif
     // returning a response to PPMU
     pkt->govInfo.markComplete();
     pmmuSlavePort->schedTimingResp(pkt, curTick());
@@ -676,6 +746,9 @@ SPM::satisfyPageDeallocation (PacketPtr pkt)
 void
 SPM::conditionalBlocking(BlockedCause cause)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::conditionalBlocking\n";
+        #endif
     assert (pendingReqs < MAX_PENDING_REQS);
     pendingReqs++;
     if (pendingReqs == MAX_PENDING_REQS)
@@ -685,6 +758,9 @@ SPM::conditionalBlocking(BlockedCause cause)
 void
 SPM::conditionalUnblocking(BlockedCause cause)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::conditionalUnblocking\n";
+        #endif
     assert (pendingReqs <= MAX_PENDING_REQS);
     pendingReqs--;
     if (pendingReqs <= MAX_PENDING_REQS && isBlocked())
@@ -694,6 +770,9 @@ SPM::conditionalUnblocking(BlockedCause cause)
 bool
 SPM::acceptingMemReqs()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::acceptingMemReqs\n";
+        #endif
     assert(pendingReqs <= MAX_PENDING_REQS);
     return  (pendingReqs < MAX_PENDING_REQS);
 }
@@ -706,7 +785,11 @@ SPM::acceptingMemReqs()
 
 void
 SPM::writebackCacheCopies(Addr p_page_addr) {
-    Cache *cache_ptr = dynamic_cast<Cache*>(memSidePort->getSlavePort().getOwner());
+        #ifdef DEBUG
+        std::cout << "SPM::writebackCacheCopies\n";
+        #endif
+    Cache *cache_ptr =
+        dynamic_cast<Cache*>(memSidePort->getSlavePort().getOwner());
     assert(cache_ptr);
 
     CacheBlk *blk = cache_ptr->findBlock(p_page_addr,false);
@@ -718,7 +801,12 @@ SPM::writebackCacheCopies(Addr p_page_addr) {
 
 unsigned
 SPM::getCacheBlkSize() {
-    Cache *cache_ptr = dynamic_cast<Cache*>(memSidePort->getSlavePort().getOwner());
+        #ifdef DEBUG
+        std::cout << "SPM::getCacheBlkSize\n";
+        #endif
+    Cache *cache_ptr =
+        dynamic_cast<Cache*>(memSidePort->getSlavePort().getOwner());
+
     assert(cache_ptr);
 
     return cache_ptr->getBlockSize();
@@ -733,6 +821,9 @@ SPM::getCacheBlkSize() {
 BaseSlavePort &
 SPM::getSlavePort(const std::string &if_name, PortID idx)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::getSlavePort\n";
+        #endif
     if (if_name == "pmmu_s_side") {
         return *pmmuSlavePort;
     } else {
@@ -740,7 +831,9 @@ SPM::getSlavePort(const std::string &if_name, PortID idx)
     }
 }
 
-SPM::PMMUSideSlavePort::PMMUSideSlavePort(const std::string &_name, SPM *_spm, PortID id)
+SPM::PMMUSideSlavePort::PMMUSideSlavePort(const std::string &_name,
+                                          SPM *_spm,
+                                          PortID id)
     : QueuedSlavePort(_name, NULL, _respQueue, id),
       _respQueue(*_spm, *this),
       my_spm(_spm)
@@ -751,7 +844,11 @@ SPM::PMMUSideSlavePort::PMMUSideSlavePort(const std::string &_name, SPM *_spm, P
 bool
 SPM::PMMUSideSlavePort::recvTimingReq(PacketPtr pkt)
 {
-    // this is called by the pmmu when SPM needs to fill a remote request or alloc/dealloc
+        #ifdef DEBUG
+        std::cout << "SPM::PMMUSideSlavePort::recvTimingReq\n";
+        #endif
+    // this is called by the pmmu when SPM
+    // needs to fill a remote request or alloc/dealloc
     my_spm->recvPMMUTimingReq(pkt);
     return true;
 }
@@ -759,6 +856,9 @@ SPM::PMMUSideSlavePort::recvTimingReq(PacketPtr pkt)
 void
 SPM::PMMUSideSlavePort::recvFunctional(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::PMMUSideSlavePort::recvFunctional\n";
+        #endif
     //@TODO:  implement - see rubyport.cc version
     panic("recvFunctional not implemented for PMMUSideSlavePort");
 }
@@ -766,6 +866,9 @@ SPM::PMMUSideSlavePort::recvFunctional(PacketPtr pkt)
 void
 SPM::PMMUSideSlavePort::setBlocked()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::PMMUSideSlavePort::setBlocked\n";
+        #endif
     //@TODO:  implement
     panic("setBlocked not implemented for PMMUSideSlavePort");
 }
@@ -773,6 +876,9 @@ SPM::PMMUSideSlavePort::setBlocked()
 void
 SPM::PMMUSideSlavePort::clearBlocked()
 {
+        #ifdef DEBUG
+        std::cout << "SPM::PMMUSideSlavePort::clearBlocked\n";
+        #endif
     //@TODO:  implement
     panic("clearBlocked not implemented for PMMUSideSlavePort");
 }
@@ -786,6 +892,9 @@ SPM::PMMUSideSlavePort::clearBlocked()
 BaseMasterPort &
 SPM::getMasterPort(const std::string &if_name, PortID idx)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::getMasterPort\n";
+        #endif
     if (if_name == "pmmu_m_side") {
         return *pmmuMasterPort;
     } else {
@@ -805,6 +914,9 @@ SPM::PMMUSideMasterPort::PMMUSideMasterPort(const std::string &_name, SPM *_spm,
 bool
 SPM::PMMUSideMasterPort::recvTimingResp(PacketPtr pkt)
 {
+        #ifdef DEBUG
+        std::cout << "SPM::PMMUSideMasterPort::recvTimingResp\n";
+        #endif
     // this is where SPM gets a reply from PMMU
     // regarding a request by its local CPU
     my_spm->recvPMMUTimingResp(pkt);

@@ -420,6 +420,7 @@ decode QUADRANT default Unknown::unknown() {
             Rd = PC + imm;
         }});
 
+
         0x06: decode FUNCT3 {
             format IOp {
                 0x0: addiw({{
@@ -565,6 +566,32 @@ decode QUADRANT default Unknown::unknown() {
                 }
             }
         }
+
+
+
+        //SPM
+        0x1A: decode FUNCT3 {
+        format ROp {
+            0x0: spmal({{
+                DPRINTF(RiscvISA, "SPM alloc\n");
+                DPRINTF(RiscvISA,"Rd: %#x, Rs1: %#x, Rs2: %#x\n",
+                    Rd, Rs1, Rs2);
+                //printf("Rd: %lu, Rs1: %lu, Rs2: %lu\n", R19, R20, R21);
+                PseudoInst::spm_alloc(xc->tcBase(), Rd, Rs1, Rs2);
+                DPRINTF(RiscvISA,"SPM alloc done\n");
+
+                    }}, IsNonSpeculative);
+                    0x1: spmfr({{
+                DPRINTF(RiscvISA,"SPM free\n");
+                DPRINTF(RiscvISA,"Rd: %#x, Rs_1: %#x, Rs_2: %#x\n",
+                    Rd, Rs1, Rs2);
+                PseudoInst::spm_free(xc->tcBase(), Rd, Rs1, Rs2);
+                DPRINTF(RiscvISA,"SPM free done\n");
+                    }}, IsNonSpeculative);
+            }
+        }
+
+
         0x0c: decode FUNCT3 {
             format ROp {
                 0x0: decode FUNCT7 {

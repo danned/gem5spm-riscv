@@ -64,6 +64,7 @@ class Mesh_XY(SimpleTopology):
         cntrls_per_router, remainder = divmod(len(nodes), num_routers)
         assert(num_rows > 0 and num_rows <= num_routers)
         num_columns = int(num_routers / num_rows)
+
         assert(num_columns * num_rows == num_routers)
 
         # Create the routers in the mesh

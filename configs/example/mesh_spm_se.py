@@ -79,13 +79,16 @@ def create_system(options, system, pmmu_nodes):
 
     NumVirtualNetworks = 10 #@TODO: Move this
 
+
     # Create the network object
     (network, IntLinkClass, ExtLinkClass, RouterClass, InterfaceClass) = \
         Network.create_network(options, system.ruby)
     system.network = network
 
     network.number_of_virtual_networks = NumVirtualNetworks
+    #print "7.6"
     system.ruby.number_of_virtual_networks = network.number_of_virtual_networks
+    #print "7.6"
 
     # Create the network topology
     topology.makeTopology(
@@ -131,7 +134,7 @@ def add_all_options():
 
 def get_processes(options):
     """Interprets provided options and returns a list of processes"""
-
+    #print options
     multiprocesses = []
     inputs = []
     outputs = []
@@ -139,6 +142,8 @@ def get_processes(options):
     pargs = []
 
     workloads = options.cmd.split(';')
+    #print options.cmd
+    #print workloads
     if options.input != "":
         inputs = options.input.split(';')
     if options.output != "":
@@ -147,6 +152,7 @@ def get_processes(options):
         errouts = options.errout.split(';')
     if options.options != "":
         pargs = options.options.split(';')
+
 
     idx = 0
     for wrkld in workloads:
@@ -276,6 +282,7 @@ for i in xrange(np):
     if options.smt:
         system.cpu[i].workload = multiprocesses
     elif len(multiprocesses) == 1:
+        #print "cpu ", i, " workload"
         system.cpu[i].workload = multiprocesses[0]
     else:
         system.cpu[i].workload = multiprocesses[i]
@@ -292,11 +299,14 @@ for i in xrange(np):
 
     system.cpu[i].createThreads()
 
-
+#print "1"
 MemClass = Simulation.setMemClass(options)
 #system.membus = SPMSystemXBar()
-system.membus = SystemXBar()
+#system.membus = NoncoherentSystemXBar()
+system.membus = SPMSystemXBar()
+#print "2"
 system.system_port = system.membus.slave
+#print "3"
 system.governor = BaseGovernor(gov_type = options.gov_type,
                                col = options.num_cpus/options.mesh_rows,
                                row = options.mesh_rows,
@@ -305,11 +315,17 @@ system.governor = BaseGovernor(gov_type = options.gov_type,
                                guest_slot_relocation_policy = options.guest_slot_relocation_policy,
                                hybrid_mem = options.hybrid_mem,
                                uncacheable_spm = options.uncacheable_spm)
+#print "4"
 pmmus,sys = SPMConfig.config_cache(options, system)
+#print "5"
 MemConfig.config_mem(options, system)
+#print "6"
 system.ruby = RubySystem(num_of_sequencers=0,
                          block_size_bytes = options.cacheline_size)
+#print "7"
 create_system(options, system, pmmus)
+#print "8"
 
 root = Root(full_system = False, system = system)
+#print "9"
 Simulation.run(options, root, system, FutureClass)

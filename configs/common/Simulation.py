@@ -427,6 +427,7 @@ def repeatSwitch(testsys, repeat_switch_cpu_list, maxtick, switch_freq):
             return exit_event
 
 def run(options, root, testsys, cpu_class):
+    print "run start"
     if options.checkpoint_dir:
         cptdir = options.checkpoint_dir
     elif m5.options.outdir:
@@ -449,6 +450,7 @@ def run(options, root, testsys, cpu_class):
     np = options.num_cpus
     switch_cpus = None
 
+    print "run start"
     if options.prog_interval:
         for i in xrange(np):
             testsys.cpu[i].progress_interval = options.prog_interval
@@ -458,6 +460,7 @@ def run(options, root, testsys, cpu_class):
             testsys.cpu[i].max_insts_any_thread = options.maxinsts
 
     if cpu_class:
+        print "if cpu_class"
         switch_cpus = [cpu_class(switched_out=True, cpu_id=(i))
                        for i in xrange(np)]
 
@@ -486,6 +489,7 @@ def run(options, root, testsys, cpu_class):
         switch_cpu_list = [(testsys.cpu[i], switch_cpus[i]) for i in xrange(np)]
 
     if options.repeat_switch:
+        print "if repeat_switch"
         switch_class = getCPUClass(options.cpu_type)[0]
         if switch_class.require_caches() and \
                 not options.caches:
@@ -520,6 +524,7 @@ def run(options, root, testsys, cpu_class):
                                       for i in xrange(np)]
 
     if options.standard_switch:
+        print "if standard_switch"
         switch_cpus = [TimingSimpleCPU(switched_out=True, cpu_id=(i))
                        for i in xrange(np)]
         switch_cpus_1 = [DerivO3CPU(switched_out=True, cpu_id=(i))
@@ -572,6 +577,7 @@ def run(options, root, testsys, cpu_class):
     # set the checkpoint in the cpu before m5.instantiate is called
     if options.take_checkpoints != None and \
            (options.simpoint or options.at_instruction):
+        print "if take_checkpoints"
         offset = int(options.take_checkpoints)
         # Set an instruction break point
         if options.simpoint:

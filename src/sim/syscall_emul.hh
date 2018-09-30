@@ -1413,6 +1413,8 @@ cloneFunc(SyscallDesc *desc, int callnum, Process *p, ThreadContext *tc)
     copyATT(tc, ctc);
     ctc->activate();
 
+        //printf("syscall clone() done\n");
+        //printf("syscall clone() done\n");
     return cp->pid();
 }
 
@@ -1950,6 +1952,7 @@ execveFunc(SyscallDesc *desc, int callnum, Process *p, ThreadContext *tc)
     tc->setProcessPtr(new_p);
     new_p->assignThreadContext(tc->contextId());
     new_p->initState();
+        printf("syscall_emul.hh");
     tc->activate();
     TheISA::PCState pcState = tc->pcState();
     tc->setNPC(pcState.instAddr());

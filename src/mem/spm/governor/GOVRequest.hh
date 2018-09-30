@@ -3,6 +3,7 @@
 
 #include "cpu/base.hh"
 #include "cpu/thread_context.hh"
+#include "mem/coherent_xbar.hh"
 #include "mem/page_table.hh"
 #include "mem/spm/api/spm_types.h"
 #include "mem/spm/governor/GOVPktInfo.hh"
@@ -162,6 +163,7 @@ typedef struct Annotations
     DataImportance data_importance;
     ThreadPriority app_priority;
     uint32_t spm_addr;
+        uint8_t spm_host;
 
     Annotations()
     {
@@ -172,6 +174,7 @@ typedef struct Annotations
         data_importance = MAX_IMPORTANCE;
         app_priority = HIGH_PRIORITY;
         spm_addr = 0;
+        spm_host = 0;
     }
 
 } Annotations;
@@ -264,17 +267,33 @@ class GOVRequest
     {
         if (cmd == Allocation)
         {
-            annotations->approximation   = static_cast<Approximation>((metadata >> 0)  & 0x00000000000000FF);
-            annotations->shared_data     = ((metadata >> 8) & 0x000000000000000F) != 0;
-            annotations->alloc_mode      = static_cast<AllocationModes>((metadata >> 12)  & 0x000000000000000F);
-            annotations->data_importance = static_cast<DataImportance>((metadata >> 16) & 0x000000000000000F);
-            annotations->app_priority    = static_cast<ThreadPriority>((metadata >> 20) & 0x000000000000000F);
-            annotations->spm_addr        = static_cast<uint32_t>((metadata >> 32) & 0x00000000FFFFFFFF);
+            annotations->approximation   =
+                static_cast<Approximation>( (metadata >> 0)  &
+                                            0x00000000000000FF);
+            annotations->shared_data     =
+                ((metadata >> 8) & 0x000000000000000F) != 0;
+            annotations->alloc_mode      =
+                static_cast<AllocationModes>((metadata >> 12)  &
+                                             0x000000000000000F);
+            annotations->data_importance =
+                static_cast<DataImportance>((metadata >> 16) &
+                                            0x000000000000000F);
+            annotations->app_priority    =
+                static_cast<ThreadPriority>((metadata >> 20) &
+                                            0x000000000000000F);
+            annotations->spm_host        =
+                static_cast<uint8_t>(   (metadata >> 24) &
+                                        0x00000000000000FF);
+            annotations->spm_addr        =
+                static_cast<uint32_t>(  (metadata >> 32) &
+                                        0x00000000FFFFFFFF);
         }
 
         else if (cmd == Deallocation)
         {
-            annotations->dealloc_mode    = static_cast<DeallocationModes>((metadata >> 0) & 0x000000000000000F);
+            annotations->dealloc_mode    =
+                static_cast<DeallocationModes>( (metadata >> 0) &
+                                                0x000000000000000F);
         }
     }
 
@@ -306,7 +325,9 @@ class GOVRequest
 
     SPM *getSPMPtr()
     {
-        BaseSPM::SPMSlavePort& spm_port = dynamic_cast<BaseSPM::SPMSlavePort&>(getCPUPtr()->getMasterPort("dcache_port", 0).getSlavePort());
+        BaseSPM::SPMSlavePort& spm_port =
+            dynamic_cast<BaseSPM::SPMSlavePort&>(
+                getCPUPtr()->getMasterPort("dcache_port", 0).getSlavePort());
         return dynamic_cast<SPM*>(spm_port.getOwner());
     }
 

@@ -57,8 +57,12 @@ Network::Network(const Params *p)
 
     // Total nodes/controllers in network
     // Must make sure this is called after the State Machine constructors
+    std::cout << "Before\n";
+    std::cout << "m_nodes: " << m_nodes << "\n";
     m_nodes = MachineType_base_number(MachineType_NUM);
+    std::cout << "m_nodes: " << m_nodes << "\n";
     assert(m_nodes != 0);
+    std::cout << "After\n";
     assert(m_virtual_networks != 0);
 
     m_topology_ptr = new Topology(p->routers.size(), p->ext_links,

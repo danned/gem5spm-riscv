@@ -73,6 +73,9 @@ def define_options(parser):
     parser.add_option("--garnet-deadlock-threshold", action="store",
                       type="int", default=50000,
                       help="network-level deadlock threshold.")
+    parser.add_option("--bandwidth", action="store",type="int",
+                      default=1000,
+                      help="network link bandwidth")
 
 
 def create_network(options, ruby):
@@ -109,7 +112,8 @@ def init_network(options, network, InterfaceClass):
         network.garnet_deadlock_threshold = options.garnet_deadlock_threshold
 
     if options.network == "simple":
-        network.setup_buffers()
+        #print "test"
+        network.setup_buffers(options.bandwidth)
 
     if InterfaceClass != None:
         netifs = [InterfaceClass(id=i) \

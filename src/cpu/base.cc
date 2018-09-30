@@ -369,8 +369,10 @@ BaseCPU::startup()
         ClockedObject::pwrState(Enums::PwrState::OFF);
 
     // Assumption CPU start to operate instantaneously without any latency
-    if (ClockedObject::pwrState() == Enums::PwrState::UNDEFINED)
+    if (ClockedObject::pwrState() == Enums::PwrState::UNDEFINED){
+                //cout << "hello\n";
         ClockedObject::pwrState(Enums::PwrState::ON);
+        }
 
 }
 
@@ -531,9 +533,11 @@ BaseCPU::activateContext(ThreadID thread_num)
     if (enterPwrGatingEvent.scheduled())
         deschedule(enterPwrGatingEvent);
     // For any active thread running, update CPU power state to active (ON)
+        //cout << "activateContext\n";
     ClockedObject::pwrState(Enums::PwrState::ON);
 
     updateCycleCounters(CPU_STATE_WAKEUP);
+        //cout << "activateContext end\n";
 }
 
 void

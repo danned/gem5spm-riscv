@@ -30,13 +30,14 @@ ExplicitLocalSPM::allocate(GOVRequest *gov_request)
 {
     printRequestStatus(gov_request);
 
-    const int total_num_pages = gov_request->getNumberOfPages(Unserved_Aligned);
+    const int total_num_pages = gov_request->getNumberOfPages(Original);
+
+    DPRINTF(GOV, "total_num_pages: %d \n", total_num_pages);
     if (total_num_pages <= 0) {
         return 0;
     }
 
     int remaining_pages = total_num_pages;
-
     // just do this if we are not called by a child policy
     if (!gov_type.compare("ExplicitLocal") && hybrid_mem) {
         cache_invalidator_helper(gov_request);
@@ -44,6 +45,7 @@ ExplicitLocalSPM::allocate(GOVRequest *gov_request)
 
     // Allocate on local SPM
     PMMU *host_pmmu = gov_request->getPMMUPtr();
+
     HostInfo host_info (gov_request->getThreadContext(),
                         gov_request->getPMMUPtr(),
                         host_pmmu,
@@ -52,11 +54,19 @@ ExplicitLocalSPM::allocate(GOVRequest *gov_request)
     host_info.setAllocMode(gov_request->getAnnotations()->alloc_mode);
     remaining_pages -= allocation_helper_on_free_pages(gov_request, &host_info);
 
+
+    printf("Allokerar for node (%d,%d) on node (%d,%d)\n",
+            host_info.getUserPMMU()->getNodeID() / num_column,
+            host_info.getUserPMMU()->getNodeID() % num_column,
+            host_info.getHostPMMU()->getNodeID() / num_column,
+            host_info.getHostPMMU()->getNodeID() % num_column);
+
+
     // just do this if we are not called by a child policy
     if (!gov_type.compare("ExplicitLocal") && uncacheable_spm) {
         add_mapping_unallocated_pages(gov_request);
     }
-    assert (total_num_pages == remaining_pages);
+    //assert (total_num_pages == remaining_pages);
     return total_num_pages - remaining_pages;
 }
 

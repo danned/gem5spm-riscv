@@ -55,6 +55,7 @@ inline T
 Packet::getRaw() const
 {
     assert(flags.isSet(STATIC_DATA|DYNAMIC_DATA));
+        //printf("sizeof(T):%d size: %d\n", (int)sizeof(T), (int)size);
     assert(sizeof(T) <= size);
     return *(T*)data;
 }

@@ -771,16 +771,21 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
 void
 spm_alloc(ThreadContext *tc, uint64_t start, uint64_t end, uint64_t metadata)
 {
-    DPRINTF(PseudoInst, "PseudoInst: spm_alloc in thread %d [start=%#x - end=%#x]\n", tc->contextId(), start, end);
+    DPRINTF(PseudoInst, "PseudoInst: spm_alloc in thread %d "
+                        "[start=%#x - end=%#x, metadata=%#x]\n",
+                        tc->contextId(), start, end, metadata);
 
     GOVRequest gov_request(tc, Allocation, start, end, metadata);
-    gov_request.getPMMUPtr()->getGovernor()->allocate(&gov_request);
+    PMMU *pmmu = gov_request.getPMMUPtr();
+    pmmu->getGovernor()->allocate(&gov_request);
 }
 
 void
 spm_free(ThreadContext *tc, uint64_t start, uint64_t end, uint64_t metadata)
 {
-    DPRINTF(PseudoInst, "PseudoInst: spm_free in thread %d [start=%#x - end=%#x]\n", tc->contextId(), start, end);
+    DPRINTF(PseudoInst, "PseudoInst: spm_free in thread %d "
+                        "[start=%#x - end=%#x]\n",
+                        tc->contextId(), start, end);
 
     GOVRequest gov_request(tc, Deallocation, start, end, metadata);
     gov_request.getPMMUPtr()->getGovernor()->deAllocate(&gov_request);

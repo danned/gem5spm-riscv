@@ -233,7 +233,7 @@ class BaseSPM : public MemObject
     const bool forwardSnoops;
 
     /**
-     * Is this spm read only, for example the instruction spm, or
+     * Is this spm read only, for example the instruction spm, orF
      * table-walker spm. A spm that is read only should never see
      * any writes, and should never get any dirty data (and hence
      * never have to do any writebacks).

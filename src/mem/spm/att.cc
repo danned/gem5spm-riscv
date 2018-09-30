@@ -40,6 +40,7 @@ bool
 ATT::isHit(Addr v_page_addr)
 {
     if (!hasMapping(v_page_addr)) {
+        DPRINTF(ATTMap,"!hasMapping\n");
         return false;
     }
     else {
@@ -56,6 +57,7 @@ bool
 ATT::addMapping(Addr v_page_addr, MachineID destination_node, Addr spm_slot_addr, Annotations *annotations)
 {
     ATTEntry *new_entry;
+    DPRINTF(ATTMap,"AddMapping\n");
 
     if (hasMapping(v_page_addr)) {
         new_entry = getMapping(v_page_addr);

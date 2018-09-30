@@ -924,6 +924,7 @@ TimingSimpleCPU::DcachePort::recvTimingResp(PacketPtr pkt)
     if (!tickEvent.scheduled()) {
         // Delay processing of returned data until next CPU clock edge
         tickEvent.schedule(pkt, cpu->clockEdge());
+                DPRINTF(SimpleCPU, "recvTimingResp 1\n");
         return true;
     } else {
         // In the case of a split transaction and a cache that is
@@ -931,6 +932,7 @@ TimingSimpleCPU::DcachePort::recvTimingResp(PacketPtr pkt)
         // same tick, delay the second one
         if (!retryRespEvent.scheduled())
             cpu->schedule(retryRespEvent, cpu->clockEdge(Cycles(1)));
+                        DPRINTF(SimpleCPU, "recvTimingResp 2\n");
         return false;
     }
 }
